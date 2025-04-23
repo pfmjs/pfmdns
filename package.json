@@ -1,0 +1,23 @@
+{
+  "name": "pfmdns",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pfmjs/pfmdns.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pfmjs/pfmdns/issues"
+  },
+  "homepage": "https://github.com/pfmjs/pfmdns#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
