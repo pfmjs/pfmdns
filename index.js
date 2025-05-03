@@ -3,40 +3,41 @@ const fs = require("fs");
 const path = require("path");
 const app = express();
 
-// Extract subdomain from host
+// Middleware: extract subdomain
 app.use((req, res, next) => {
   const host = req.headers.host;
-  const subdomain = host.split(".")[0]; // e.g., lexius.pfmdns.onrender.com → lexius
-  console.log("Extracted subdomain:", subdomain);
-  req.subdomain = subdomain;
+  const parts = host.split(".");
+  req.subdomain = parts.length > 2 ? parts[0] : null;
+  console.log("Subdomain:", req.subdomain);
   next();
 });
 
-// Serve static files for subdomain (e.g., style.css, script.js)
+// Middleware: serve static files from /sites/<subdomain>/
 app.use((req, res, next) => {
-  const sub = req.subdomain;
-  const subdomainDir = path.join(__dirname, "sites", sub);
-
-  if (fs.existsSync(subdomainDir)) {
-    express.static(subdomainDir)(req, res, next);
+  if (!req.subdomain) return next();
+  const dir = path.join(__dirname, "sites", req.subdomain);
+  if (fs.existsSync(dir)) {
+    express.static(dir)(req, res, next);
   } else {
     next();
   }
 });
 
-// Route all requests to index.html in subdomain folder
-app.get("*", (req, res) => {
-  const sub = req.subdomain;
-  const subdomainDir = path.join(__dirname, "sites", sub);
-  const indexFile = path.join(subdomainDir, "index.html");
+// Route: serve index.html for subdomain
+app.use((req, res) => {
+  if (!req.subdomain) return res.status(400).send("No subdomain provided");
 
-  if (fs.existsSync(indexFile)) {
-    res.sendFile(indexFile);
+  const filePath = path.join(__dirname, "sites", req.subdomain, "index.html");
+
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
   } else {
     res.status(404).send("<h1>404 — Site Not Found</h1>");
   }
 });
 
-// Use the correct Render port
+// Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
