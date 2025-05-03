@@ -3,34 +3,30 @@ const fs = require("fs");
 const path = require("path");
 const app = express();
 
-// Middleware to extract subdomain from request
+const PORT = process.env.PORT || 3000; // ✅ Use dynamic port
+
+// Extract subdomain from Host header
 app.use((req, res, next) => {
-  const host = req.headers.host;
-  const subdomain = host.split(".")[0]; // Handles only first subdomain part
-  console.log("Extracted subdomain:", subdomain); // Debugging line
+  const host = req.headers.host || "";
+  const subdomain = host.split(".")[0]; // Works for lexius.pfmdns.onrender.com
+  console.log("Extracted subdomain:", subdomain);
   req.subdomain = subdomain;
   next();
 });
 
-// Serve static files based on subdomain
+// Serve static files from /sites/<subdomain>
 app.use((req, res, next) => {
-  const sub = req.subdomain;
-  const subdomainDir = path.join(__dirname, "sites", sub);
-
+  const subdomainDir = path.join(__dirname, "sites", req.subdomain);
   if (fs.existsSync(subdomainDir)) {
-    express.static(subdomainDir)(req, res, next); // Dynamically serve static files
+    express.static(subdomainDir)(req, res, next);
   } else {
-    next(); // Continue to 404
+    next();
   }
 });
 
-// Route for index.html
-app.get("", (req, res) => {
-  const sub = req.subdomain;
-  const subdomainDir = path.join(__dirname, "sites", sub);
-
-  const filePath = path.join(subdomainDir, "index.html");
-
+// Serve index.html as fallback
+app.get("*", (req, res) => {
+  const filePath = path.join(__dirname, "sites", req.subdomain, "index.html");
   if (fs.existsSync(filePath)) {
     res.sendFile(filePath);
   } else {
@@ -38,4 +34,6 @@ app.get("", (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
