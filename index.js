@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 });
 
 // Serve index.html as fallback
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
   const filePath = path.join(__dirname, "sites", req.subdomain, "index.html");
   if (fs.existsSync(filePath)) {
     res.sendFile(filePath);
